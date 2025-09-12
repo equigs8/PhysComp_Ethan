@@ -23,7 +23,7 @@ int pauseBetweenWordsLength = dotLength * 7;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600); // Standard baud rate is 9600 for Serial Monitor
+  Serial.begin(150200); // Standard baud rate is 9600 for Serial Monitor
   pinMode(lightPin1, OUTPUT);
   Serial.println("Setup Complete");
 }
