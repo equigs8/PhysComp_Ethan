@@ -6,10 +6,10 @@ By Ethan Quigley
 // GLOBAL VARIABLES
 // Light Pins. Assign to the pin number on microcontroller
 
-int lightPin1 = 15;
-int lightPin2 = 18;
-int lightPin3 = 13;
-int lightPin4 = 12;
+int lightPin1 = 9;
+int lightPin2 = 8;
+int lightPin3 = 15;
+int lightPin4 = 4;
 
 // Word to translate into morse code
 char myWord[] = "ethan";
@@ -24,7 +24,7 @@ int pauseBetweenWordsLength = dotLength * 7;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(150200); // Standard baud rate is 9600 for Serial Monitor
+  Serial.begin(115200); // Standard baud rate is 9600 for Serial Monitor
   pinMode(lightPin1, OUTPUT);
   pinMode(lightPin2, OUTPUT);
   pinMode(lightPin3, OUTPUT);
