@@ -6,14 +6,15 @@ By Ethan Quigley
 // GLOBAL VARIABLES
 // Light Pins. Assign to the pin number on microcontroller
 
-int lightPin1 = 0;
-int lightPin2 = 10;
-int lightPin3 = 11;
+int lightPin1 = 15;
+int lightPin2 = 18;
+int lightPin3 = 13;
 int lightPin4 = 12;
 
 // Word to translate into morse code
 char myWord[] = "ethan";
 int currentLetterPosition = 0;
+bool morseCodeDone = false;
 
 int dotLength = 500; // The length of the dot in milliseconds
 int dashLength = dotLength * 3; // The length of the dash in milliseconds
@@ -25,11 +26,41 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(150200); // Standard baud rate is 9600 for Serial Monitor
   pinMode(lightPin1, OUTPUT);
+  pinMode(lightPin2, OUTPUT);
+  pinMode(lightPin3, OUTPUT);
+  pinMode(lightPin4, OUTPUT);
   Serial.println("Setup Complete");
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  if (morseCodeDone){
+    trafficLights();
+  }else{
+    morseCode();
+  }
+}
+
+void trafficLights(){
+  int redLight = lightPin2;
+  int yellowLight = lightPin3;
+  int greenLight = lightPin4;
+
+  playLight(redLight, 4000);
+  playLight(yellowLight, 1000);
+  playLight(greenLight, 5000);
+  
+  morseCodeDone = false;
+}
+
+void playLight(int light, int duration){
+  digitalWrite(light, HIGH);
+  delay(duration);
+  digitalWrite(light, LOW);
+}
+
+
+void morseCode(){
   char currentLetter = myWord[currentLetterPosition];
   playLetter(currentLetter);
   
@@ -37,6 +68,7 @@ void loop() {
     currentLetterPosition = 0;
     Serial.println("END OF WORD");
     delay(pauseBetweenWordsLength); // Pause before repeating the word
+    morseCodeDone = true;
   } else {
     currentLetterPosition++;
     delay(pauseBetweenLettersLength); // Pause between letters
