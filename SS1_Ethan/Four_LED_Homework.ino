@@ -1,21 +1,30 @@
 /*
 Four LED Homework
+Morse Code Light
 By Ethan Quigley
 */
 
 // GLOBAL VARIABLES
 // Light Pins. Assign to the pin number on microcontroller
 
+<<<<<<< Updated upstream:SS1_Ethan/Four_LED_Homework.ino
 int lightPin1 = 9;
 int lightPin2 = 8;
 int lightPin3 = 15;
 int lightPin4 = 4;
+=======
+int lightPin1 = 0; //Morse Code output LED
+int lightPin2 = 10;
+int lightPin3 = 11;
+int lightPin4 = 12;
+>>>>>>> Stashed changes:Four_LED_Homework/Four_LED_Homework.ino
 
 // Word to translate into morse code
 char myWord[] = "ethan";
 int currentLetterPosition = 0;
 bool morseCodeDone = false;
 
+//Morse could lengths
 int dotLength = 500; // The length of the dot in milliseconds
 int dashLength = dotLength * 3; // The length of the dash in milliseconds
 int pauseBetweenSymbolsLength = dotLength;
