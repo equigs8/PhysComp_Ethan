@@ -55,6 +55,8 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(lightPin1, OUTPUT);
+  pinMode(listeningModePin, OUTPUT);
+  pinMode(sendingModePin, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(potentiometerPin, INPUT);
 
