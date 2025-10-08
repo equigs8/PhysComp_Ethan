@@ -1,5 +1,6 @@
 /*
-Morse Code Communicator - Prototype Added
+Short Sketch 2 - MTEC 2280 Phys Computing
+Morse Code Communicator
 By Ethan Quigley
 */
 #include <string.h>
@@ -13,8 +14,10 @@ const char* letterToMorseCode(char letter);
 char morseCodeToLetter(String code);
 
 // GLOBAL VARIABLES
-// Light Pin
+// Light Pins
 int lightPin1 = 1;
+int listeningModePin = 10;
+int sendingModePin = 11;
 
 // Button Pin
 int buttonPin = 2;
@@ -48,10 +51,13 @@ enum Mode {
 Mode currentMode = LISTENING_MODE; // Start in listening mode
 
 void setup() {
+  //Init Serial at 115200
   Serial.begin(115200);
+
   pinMode(lightPin1, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(potentiometerPin, INPUT);
+
   Serial.println("Setup Complete");
   Serial.println("Mode: LISTENING_MODE (Button Input)");
 }
@@ -63,6 +69,7 @@ void loop() {
     if (currentMode != LISTENING_MODE) {
       currentMode = LISTENING_MODE;
       Serial.println("\nMode: LISTENING_MODE (Button Input)");
+      SwitchModeLight();
     }
     readButtonPress();
   } else {
@@ -70,8 +77,19 @@ void loop() {
       currentMode = SENDING_MODE;
       Serial.println("\nMode: SENDING_MODE (Serial Input)");
       Serial.println("Type a word and press Enter.");
+      SwitchModeLight();
     }
     readSerialInput();
+  }
+}
+
+void SwitchModeLight(){
+  if(currentMode ==  LISTENING_MODE){
+    digitalWrite(listeningModePin, HIGH);
+    digitalWrite(sendingModePin, LOW);
+  }else{
+    digitalWrite(listeningModePin, LOW);
+    digitalWrite(sendingModePin, HIGH);
   }
 }
 
