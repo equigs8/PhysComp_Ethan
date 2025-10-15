@@ -103,6 +103,7 @@ void readButtonPress() {
     pressStartTime = millis();
     while (digitalRead(buttonPin) == LOW) {
       // Wait for the button to be released
+      // Serial.println("IN THE WHILE LOOP");
     }
     pressDuration = millis() - pressStartTime;
 
