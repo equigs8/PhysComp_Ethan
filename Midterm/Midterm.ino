@@ -18,7 +18,7 @@ int sendingModePin = 11;
 int buttonPin = 2;
 
 // Potentiometer Pin
-int potentiometerPin = 4; // Use an analog pin
+int potentiometerPin = 8; // Use an analog pin
 
 // Morse Code Timing
 int dotLength = 500; // The length of the dot in milliseconds
@@ -59,11 +59,11 @@ void OnDataSent(const wifi_tx_info_t *tx_info, esp_now_send_status_t status){
 
 // Mode Variables
 enum Mode {
-  LISTENING_MODE,
-  SENDING_MODE
+  SENDING_MODE,
+  RECEIVING_MODE
 };
 
-Mode currentMode = LISTENING_MODE; // Start in listening mode
+Mode currentMode = SENDING_MODE; // Start in listening mode
 
 void setup() {
   //Init Serial at 115200
@@ -80,23 +80,24 @@ void setup() {
   pinMode(potentiometerPin, INPUT);
 
   Serial.println("Setup Complete");
-  Serial.println("Mode: LISTENING_MODE (Button Input)");
+  Serial.println("Mode: SENDING_MODE (Button Input)");
 }
 
 void loop() {
   // Read the potentiometer to determine the current mode
   int potValue = analogRead(potentiometerPin);
-  if (potValue < 512) {
-    if (currentMode != LISTENING_MODE) {
-      currentMode = LISTENING_MODE;
-      Serial.println("\nMode: LISTENING_MODE (Button Input)");
+  //Serial.println(potValue);
+  if (potValue < 2000) {
+    if (currentMode != SENDING_MODE) {
+      currentMode = SENDING_MODE;
+      Serial.println("\nMode: SENDING_MODE (Button Input)");
       SwitchModeLight();
     }
     readButtonPress();
   } else {
-    if (currentMode != SENDING_MODE) {
-      currentMode = SENDING_MODE;
-      Serial.println("\nMode: SENDING_MODE (Serial Input)");
+    if (currentMode != RECEIVING_MODE) {
+      currentMode = RECEIVING_MODE;
+      Serial.println("\nMode: RECEIVING_MODE (Serial Input)");
       Serial.println("Type a word and press Enter.");
       SwitchModeLight();
     }
@@ -128,7 +129,7 @@ void ESPNowSetup(){
 
 
 void SwitchModeLight(){
-  if(currentMode ==  LISTENING_MODE){
+  if(currentMode ==  SENDING_MODE){
     digitalWrite(listeningModePin, HIGH);
     digitalWrite(sendingModePin, LOW);
   }else{
