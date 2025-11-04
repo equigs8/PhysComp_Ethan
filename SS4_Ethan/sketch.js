@@ -8,6 +8,7 @@ let centerY = screenHeight/2;
 let serial;
 let portName = 'COM3';  // fill in your serial port name here
 let options = { baudRate: 9600}; // change the baud rate to match your Arduino code
+let isConnectedToDivice = false;
 
 let inData;
 let sensors = [];
@@ -17,6 +18,8 @@ let paddle2Position = screenWidth - 20;
 
 let paddle1Xposition = 0;
 let paddle2Xposition = 0;
+
+let paddleSpeed = 5;
 
 let ballX = 0;
 let ballY = 0;
@@ -71,11 +74,14 @@ function serialEvent() //gets called when new data arrives
 
 function p5setup() {
   // put p5 setup code here
-  createCanvas(screenHeight, screenWidth);
+  let cnv = createCanvas(screenHeight, screenWidth);
+  cnv.position((windowWidth - width) / 2, (windowHeight - height) / 2);
   textSize(72);
   textAlign(CENTER, CENTER);
   ballX = centerX;
   ballY = centerY;
+  paddle1Xposition = centerY;
+  paddle2Xposition = centerY;
   gamePaused = false;
 }
 function draw() {
@@ -90,30 +96,54 @@ function draw() {
     drawBall();
   }
 
-  if(player1Score == 5){
-    fill(255,255,255);
-    text("Player 1 wins!",centerX,centerY);
-    gamePaused = true;
-  }
-  if(player2Score == 5){
-    fill(255,255,255);
-    text("Player 2 wins!",centerX,centerY);
-    gamePaused = true;
-  }
+  updateScore();
 
+}
+
+function updateScore() {
+  if (player1Score == 5) {
+    fill(255, 255, 255);
+    text("Player 1 wins!", centerX, centerY);
+    gamePaused = true;
+  }
+  if (player2Score == 5) {
+    fill(255, 255, 255);
+    text("Player 2 wins!", centerX, centerY);
+    gamePaused = true;
+  }
 }
 
 function drawPlayer(playerName,playerPosition){
   fill(255,255,255);
   if(playerName == "player1"){
-    paddle1Xposition = sensors[0];
+    if(isConnectedToDivice){
+      paddle1Xposition = sensors[0];
+    }else {
+      if(keyIsDown(87)){
+      paddle1Xposition -= paddleSpeed;
+      }
+      if(keyIsDown(83)){
+      paddle1Xposition += paddleSpeed;
+      }
+    }
     rectMode(CENTER);
     rect(playerPosition,paddle1Xposition,10,100);
     
   }
   else{
-    paddle2XPosition = sensors[1];
-    rect(playerPosition,paddle2XPosition,10,100);
+    if(isConnectedToDivice){
+      paddle2Xposition = sensors[1];
+    }
+    else {
+      if(keyIsDown(UP_ARROW)){
+      paddle2Xposition -= paddleSpeed;
+      }
+      if(keyIsDown(DOWN_ARROW)){
+      paddle2Xposition += paddleSpeed;
+      }
+    }
+    rectMode(CENTER);
+    rect(playerPosition,paddle2Xposition,10,100);
   }
   
 }
@@ -142,10 +172,10 @@ function drawBall(){
       ballVelocityY = ballVelocityY * -1;
     }
   }
-  if(ballX == paddle2Position && (paddle2XPosition < ballY + 100 && paddle2XPosition > ballY - 100)){
+  if(ballX == paddle2Position && (paddle2Xposition < ballY + 100 && paddle2Xposition > ballY - 100)){
     ballVelocityX = ballVelocityX * -1;
     console.log("ballX: " + ballX + " ballY: " + ballY);
-    console.log("paddle2Position: " + paddle2Position + " paddle2XPosition: " + paddle2XPosition);
+    console.log("paddle2Position: " + paddle2Position + " paddle2Xposition: " + paddle2Xposition);
   }
 
   if(ballX == 0 ){
@@ -178,10 +208,12 @@ function printList(portList){
 
 function serialConnected(port) {
   console.log('Connected to ' + port);
+  isConnectedToDivice = true;
 }
 
 function serialOpened() {
   console.log('Serial Port Opened');
+  isConnectedToDivice = true;
 }
 
 function inDataReceived(data) {
@@ -191,8 +223,10 @@ function inDataReceived(data) {
 
 function serialError(err) {
   console.log('Something went wrong with the serial port. ' + err);
+  isConnectedToDivice = false;
 }
 
 function serialClosed() {
   console.log('The serial port closed.');
+  isConnectedToDivice = false;
 }
