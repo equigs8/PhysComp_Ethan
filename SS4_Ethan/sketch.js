@@ -157,8 +157,6 @@ function drawBall(){
   ballY += ballVelocityY;
   //console.log("ballX: " + ballX + " ballY: " + ballY);
 
-
-
   
   if(ballX == paddle1Position && (paddle1Xposition < ballY + 100 && paddle1Xposition > ballY - 100)){
     ballVelocityX = ballVelocityX * -1;
@@ -181,17 +179,17 @@ function drawBall(){
   if(ballX == 0 ){
     pointScored = true;
     player2Score++;
-    returnBall();
+    returnBallToCenter();
   }
   if(ballX == screenWidth){
     pointScored = true;
     player1Score++;
-    returnBall();
+    returnBallToCenter();
   }
 
 }
 
-function returnBall(){
+function returnBallToCenter(){
   ballX = centerX;
   ballY = centerY;
   ballVelocityX = ballVelocityX * -1;
