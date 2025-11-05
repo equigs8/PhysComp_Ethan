@@ -150,6 +150,7 @@ function drawPlayer(playerName,playerPosition){
   else{
     if(isConnectedToDivice){
       paddle2Xposition = map(sensors[1],0,255,0,screenHeight);
+      // paddle2Xposition = sensors[1];
     }
     else {
       if(keyIsDown(UP_ARROW)){

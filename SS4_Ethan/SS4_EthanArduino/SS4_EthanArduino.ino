@@ -4,8 +4,8 @@
 //1 button that resets the game
 
 // BUTTONS
-const int resetButtonPin = 0;
-const int pauseButtonPin = 0;
+const int resetButtonPin = 1;
+const int pauseButtonPin = 2;
 
 //BUTTON VALUES
 int resetButtonValue;
@@ -13,7 +13,7 @@ int pauseButtonValue;
 
 //POTS
 const int paddlePot1Pin = 8;
-const int paddlePot2Pin = 2;
+const int paddlePot2Pin = 3;
 
 //Pot Values
 int paddlePot1Value;
@@ -44,18 +44,18 @@ void loop() {
     resetButtonValue = digitalRead(resetButtonPin);
     pauseButtonValue = digitalRead(pauseButtonPin);
 
-    int valueArray[] = {paddlePot1Value, paddlePot2Value, resetButtonValue, pauseButtonValue};
-    Serial.print(convertArrayToString(valueArray));
+    //int valueArray[] = {paddlePot1Value, paddlePot2Value, resetButtonValue, pauseButtonValue};
+    //Serial.print(convertArrayToString(valueArray));
 
     
-    // Serial.print(paddlePot1Value);
-    // Serial.print(',');
-    // Serial.print(paddlePot2Value);
-    // Serial.print(',');
-    // Serial.print(resetButtonValue);
-    // Serial.print(',');
-    // Serial.print(pauseButtonValue);
-    // Serial.print('\n');
+    Serial.print(paddlePot1Value);
+    Serial.print(',');
+    Serial.print(paddlePot2Value);
+    Serial.print(',');
+    Serial.print(resetButtonValue);
+    Serial.print(',');
+    Serial.print(pauseButtonValue);
+    Serial.print('\n');
   }
 }
 
