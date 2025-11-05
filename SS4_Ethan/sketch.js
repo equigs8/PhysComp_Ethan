@@ -27,7 +27,7 @@ let ballY = 0;
 let ballVelocityX = 1;
 let ballVelocityY = -.25;
 
-let ballSpeed = 5;
+let ballSpeed = 2.5;
 
 let pointScored = false;
 
@@ -68,6 +68,21 @@ function serialEvent() //gets called when new data arrives
       // A base of 10 is for decimal numbers, base of 16 is for hexadecimal, base of 2 is for binary.
       // sensors[i] = parseInt(sensors[i], 10); // converts every element in array to decimal number
     }
+    if(sensors[2] == 1){
+      sensors[2] = true;
+    }
+    else if(sensors[2] == 0){
+      sensors[2] = false;
+    }
+    if(sensors[3] == 1){
+      sensors[3] = true;
+    }
+    else if(sensors[3] == 0){
+      sensors[3] = false;
+    }
+    checkForReset(sensors[2]);
+    checkForPause(sensors[3]);
+    
     //print(sensors);
   } 
 }
@@ -96,6 +111,8 @@ function draw() {
     drawBall();
   }
 
+  
+
   updateScore();
 
 }
@@ -117,7 +134,7 @@ function drawPlayer(playerName,playerPosition){
   fill(255,255,255);
   if(playerName == "player1"){
     if(isConnectedToDivice){
-      paddle1Xposition = sensors[0];
+      paddle1Xposition = map(sensors[0],0,255,0,screenHeight);
     }else {
       if(keyIsDown(87)){
       paddle1Xposition -= paddleSpeed;
@@ -132,7 +149,7 @@ function drawPlayer(playerName,playerPosition){
   }
   else{
     if(isConnectedToDivice){
-      paddle2Xposition = sensors[1];
+      paddle2Xposition = map(sensors[1],0,255,0,screenHeight);
     }
     else {
       if(keyIsDown(UP_ARROW)){
@@ -153,16 +170,12 @@ function drawBall(){
   fill(255,255,255);
   rect(ballX,ballY,10,10);
 
-  ballX += ballVelocityX;
-  ballY += ballVelocityY;
+  ballX += ballVelocityX * ballSpeed;
+  ballY += ballVelocityY * ballSpeed;
   //console.log("ballX: " + ballX + " ballY: " + ballY);
 
-  
-  if(ballX == paddle1Position && (paddle1Xposition < ballY + 100 && paddle1Xposition > ballY - 100)){
+  if(ballX - 5 <= paddle1Position + 5 && ballX - 5 > 0 && (paddle1Xposition < ballY + 50 && paddle1Xposition > ballY - 50)){
     ballVelocityX = ballVelocityX * -1;
-    console.log("ballX: " + ballX + " ballY: " + ballY);
-    console.log("paddle1Position: " + paddle1Position + " paddle1Xposition: " + paddle1Xposition);
-
     if(ballY > paddle1Xposition){
       ballVelocityY = ballVelocityY * -1;
     }
@@ -170,10 +183,11 @@ function drawBall(){
       ballVelocityY = ballVelocityY * -1;
     }
   }
-  if(ballX == paddle2Position && (paddle2Xposition < ballY + 100 && paddle2Xposition > ballY - 100)){
+
+  // Collision with Paddle 2 (Right):
+  // Check if the ball's horizontal position is at or past the paddle's left edge (480 - 5)
+  if(ballX + 5 >= paddle2Position - 5 && ballX + 5 < screenWidth && (paddle2Xposition < ballY + 50 && paddle2Xposition > ballY - 50)){
     ballVelocityX = ballVelocityX * -1;
-    console.log("ballX: " + ballX + " ballY: " + ballY);
-    console.log("paddle2Position: " + paddle2Position + " paddle2Xposition: " + paddle2Xposition);
   }
 
   if(ballX == 0 ){
@@ -194,6 +208,18 @@ function returnBallToCenter(){
   ballY = centerY;
   ballVelocityX = ballVelocityX * -1;
   pointScored = false;
+}
+
+function checkForPause(buttonValue){
+  if(buttonValue){
+    gamePaused = !gamePaused;
+  }
+}
+
+function checkForReset(buttonValue){
+  if(buttonValue){
+    resetGame();
+  }
 }
 
 function printList(portList){

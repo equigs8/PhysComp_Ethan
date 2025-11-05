@@ -7,6 +7,10 @@
 const int resetButtonPin = 0;
 const int pauseButtonPin = 0;
 
+//BUTTON VALUES
+int resetButtonValue;
+int pauseButtonValue;
+
 //POTS
 const int paddlePot1Pin = 8;
 const int paddlePot2Pin = 2;
@@ -22,8 +26,12 @@ int timerInterval = 2;
 
 void setup() {
   // put your setup code here, to run once:
+  pinMode(resetButtonPin, INPUT_PULLUP);
+  pinMode(pauseButtonPin, INPUT_PULLUP);
+
   Serial.begin(9600);     // Start serial communication @ 9600 baud rate
   analogReadResolution(8);
+
 }
 
 void loop() {
@@ -33,10 +41,35 @@ void loop() {
     paddlePot1Value = analogRead(paddlePot1Pin);
     paddlePot2Value = analogRead(paddlePot2Pin);
 
+    resetButtonValue = digitalRead(resetButtonPin);
+    pauseButtonValue = digitalRead(pauseButtonPin);
 
-    Serial.print(paddlePot1Value);
-    Serial.print(',');
-    Serial.print(paddlePot2Value);
-    Serial.print('\n');
+    int valueArray[] = {paddlePot1Value, paddlePot2Value, resetButtonValue, pauseButtonValue};
+    Serial.print(convertArrayToString(valueArray));
+
+    
+    // Serial.print(paddlePot1Value);
+    // Serial.print(',');
+    // Serial.print(paddlePot2Value);
+    // Serial.print(',');
+    // Serial.print(resetButtonValue);
+    // Serial.print(',');
+    // Serial.print(pauseButtonValue);
+    // Serial.print('\n');
   }
+}
+
+
+//A funtion that takes in an array and returns it as a string separated by commas and ending with a newline
+String convertArrayToString(int arr[]) {
+  String result = "";
+  int size = sizeof(arr) / sizeof(arr[0]);
+  for (int i = 0; i < size; i++) {
+    result += String(arr[i]);
+    if (i < size - 1) {
+      result += ",";
+    }
+  }
+  result += "\n";
+  return result;
 }
