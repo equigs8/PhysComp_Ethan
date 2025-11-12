@@ -27,9 +27,11 @@ void setup() {
   Serial.begin(BAUD_RATE);
   Serial.println("Serial Piano Ready. Awaiting data from p5.js...");
 
+  //analogWriteResolution(BUZZER_PIN,16);
+
   // Initialize the buzzer pin with the tone function's LEDC settings
   // This is required for tone() on ESP32 to work correctly
-  ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
+  ledcAttachChannel(BUZZER_PIN, 220, 12, BUZZER_CHANNEL);
 }
 
 void loop() {
@@ -40,7 +42,8 @@ void loop() {
 
     if (incomingByte == STOP_NOTE) {
       // Received the STOP signal (255)
-      ledcDetachPin(BUZZER_PIN); // Stops the PWM signal cleanly
+      //noTone(BUZZER_PIN);
+      ledcDetach(BUZZER_PIN); // Stops the PWM signal cleanly
       // Serial.println("Note OFF"); // Optional feedback
     } 
     else if (incomingByte >= 0 && incomingByte <= 11) {
@@ -50,7 +53,8 @@ void loop() {
       
       // Start the tone using the specified channel and frequency
       // The duration argument is typically 0 to play indefinitely until stopped
-      tone(BUZZER_PIN, frequency); 
+      //tone(BUZZER_PIN, frequency); 
+      ledcWriteTone(BUZZER_PIN, frequency);
       // Serial.print("Playing Note ID: "); // Optional feedback
       // Serial.println(noteID);
     }
