@@ -3,183 +3,194 @@ let portName = 'COM3';  // fill in your serial port name here
 let options = { baudRate: 9600}; // change the baud rate to match your Arduino code
 let isConnectedToDivice = false;
 
-let rxFlag = false; // flag to indicate when new data has been received
-let firstContact = false; // flag to indicate when the first contact has been made with the serial port
-let sensors = [0, 0, 0, 0]; // declare array to hold incoming sensor data, and initialize with zeros
-let pot1 = 0; // variable to hold potentiometer value
-let pot2 = 0; // variable to hold potentiometer value
-let button1 = 0; // variable to hold button value
-let button2 = 0; // variable to hold button value
+// --- UI & State Variables ---
+let currentMode = 'A'; // 'A' for Lights Out, 'B' for Rev Lights
+let modeToggle;        // p5.Element for the toggle button
+let gameStartButton;   // p5.Element for the game start button
 
+// --- Game/Data Variables ---
+let reactionTime = '---'; // Holds the result from Mode 'A'
+let potLightCount = 0;    // Holds the number of lights ON from Mode 'B'
+let feedbackMessage = 'Press the button below to start the game.'; // Dynamic message display
+let modeMessage = 'Current Mode: Lights Out (A)';
 
-function setup() 
-{
-  //P5 Sketch Setup
-  createCanvas(500, 500);
-  textAlign(CENTER, CENTER);
-  textSize(24);
-  strokeWeight(4);
-  stroke(127);
-
-  //P5 SerialPort Setup
-  serial = new p5.SerialPort();             // make a new instance of the serialport library
-  serial.on('list', printList);             // set a callback function for the serialport list event
-  serial.on('connected', serverConnected);  // set callback for connecting to the server
-  serial.on('open', portOpen);              // set callback for the port opening
-  serial.on('data', serialEvent);           // set callback for when new data received
-  serial.on('error', serialError);          // set callback for errors
-  serial.on('close', portClose);            // set callback for closing the port
-  serial.list();                            // list the serial ports
-  serial.open(portName, options);           // open a serial port
-}
-
-function draw() 
-{
-  background(0);
-  stroke(127);
-
-  if (!firstContact)  //if we have not yet received any data...
-  {
-  // display "Waiting" page
-    background(0, 0, 127);
-    fill(255);
-    noStroke();
-    text("Waiting for First Contact", width/2, height/4);
-    text("Click Circle to Begin", width/2, height/3);
-    circle(width/2, height/2, 140);
-    fill(0);
-    text("START RX", width/2, height/2);
-  }
-  else  //if we have established contact with the serial port, show main sketch...
-  {
-    //potentiometer indicator outlines
-    fill(pot1);
-    rect(width/8, height/4, 60, 255);
-    fill(pot2);
-    rect(width - width/4, height/4, 60, 255);
-
-    //potentiometer indicators
-    fill(0, pot1, 0);
-    rect(width/8, height/4, 60, pot1);
-    fill(pot2, 0, 0);
-    rect(width - width/4, height/4, 60, pot2);
-
-    //button indicators
-    fill(button1);
-    rect(width/2 - 100, height/4, 50, 50);
-    fill(button2);
-    rect(width/2 + 50, height/4, 50, 50);
-
-    //pause button
-    fill(200);
-    circle(width/2, height/2, 140);
-
-    if (rxFlag) // if rxFlag is true, we are receiving data, so...
-    {
-      fill(0);
-      noStroke();
-      text("PAUSE RX", width/2, height/2);  // display "PAUSE RX" on the button
-    }
-    else  //if rxFlag is false, we are not receiving data, so...
-    {
-      fill(255, 0, 0 );
-      noStroke();
-      text("PAUSED", width/2, height/2);  //display "PAUSED" on the button
-    }
-  }
-}
-
-function mousePressed() //if mouse is pressed...
-{
-  if (dist(mouseX, mouseY, width/2, height/2) < 70) // if mouse postion is within the radius of the circle button...
-  {
-    console.log(rxFlag);
-    rxFlag = !rxFlag; // toggle the rxFlag
-    console.log(rxFlag);
-    if (rxFlag) //if rxFlag is true, we want to receive data, so...
-    {
-      serial.write('A'); // send 'A' to the serial port to indicate that we want to receive data
-    }
-    else  //if rxFlag is false, we want to pause receiving data, so...
-    {
-      serial.write('B'); // send 'B' to the serial port to indicate that we want to pause receiving data
-    }
-  }
-}
-
-function portOpen() //gets called when the serial port opens
-{
-  print("SERIAL PORT OPEN");
-}
-
-function portClose() //gets called when the serial port closes
-{
-  print("SERIAL PORT CLOSED");
-}
-
-function printList(portList) // gets called when the serial.list() function is called
-{
-  print("List of Available Serial Ports: ");
-  for (var i = 0; i < portList.length; i++) 
-  {
-    print(i + portList[i]); //print list of available serial ports to console
-  }
-}
-
-function serialEvent() // gets called when new serial data arrives
-{
-  if (!firstContact)  //if we have not yet received any data, this is our first contact with the serial port, so...
-  {
-    print("FIRST CONTACT"); //print "FIRST CONTACT" to the console
-    firstContact = true;  //set firstContact flag to true
-  }
-  
-  if(rxFlag)  //if rxFlag is true, we want to receive data, so...
-  {
-    let inString = serial.readStringUntil('\n'); // read the incoming string until you get a newline character
-    if (inString.length > 0) 
-    {
-      print("Rx String: " + inString); // print the incoming string to the console
-      sensors = split(inString, ','); // split the string into an array of sensor values
+// --- P5 Setup ---
+function setup() {
+    createCanvas(700, 400);
+    textSize(20);
+    textAlign(CENTER, CENTER);
     
-      if(sensors.length >= 4) // check if we have all 4 sensor values before trying to access them
-      {
-        print(sensors); // print the array of sensor values to the console
+    // Initialize P5 SerialPort
+    serial = new p5.SerialPort(); 
+    serial.on('list', printList); 
+    serial.on('connected', serverConnected); 
+    serial.on('open', portOpen); 
+    serial.on('data', serialEvent); 
+    serial.on('error', serialError); 
+    serial.on('close', portClose); 
+    serial.list(); 
+    serial.open(portName, options);
 
-        button1 = Number(sensors[0]); // convert the first sensor value to an integer
-        button1 = map(button1, 0, 1, 0, 255); // map the button value from boolean true/false to 0-255
+    // --- UI Element Setup ---
 
-        button2 = Number(sensors[1]); // convert the second sensor value to an integer
-        button2 = map(button2, 0, 1, 0, 255); // map the button value from boolean true/false to 0-255
+    // 1. Mode Toggle Button
+    modeToggle = createButton('Switch to Rev Lights (B)');
+    modeToggle.position(width / 2 - 100, height - 70);
+    modeToggle.size(200, 40);
+    modeToggle.mousePressed(toggleMode);
+    
+    // 2. Game Start Button (Starts the 'A' mode sequence)
+    gameStartButton = createButton('START Lights Out Game');
+    gameStartButton.position(width / 2 - 150, height / 2 + 50);
+    gameStartButton.size(300, 60);
+    gameStartButton.mousePressed(startGame);
+}
+
+// --- P5 Draw Loop ---
+function draw() {
+    background(220);
+    
+    // Connection Status
+    fill(isConnected ? color(0, 150, 0) : color(150, 0, 0));
+    rect(10, 10, 15, 15);
+    fill(0);
+    textSize(14);
+    textAlign(LEFT);
+    text('Serial Status', 30, 17);
+    
+    // --- Display Mode and Data ---
+    textAlign(CENTER);
+    textSize(24);
+    text(modeMessage, width / 2, 50);
+    
+    if (currentMode === 'A') {
+        // Mode A: Lights Out Game Display
+        textSize(32);
+        fill(0);
+        text('Reaction Time:', width / 2, 120);
         
-        pot1 = Number(sensors[2]); // convert the third sensor value to an integer
-        pot1 = map(pot1, 0, 1023, 0, 255); // map the potentiometer value from 0-1023 to 0-255
-        pot1 = floor(pot1); // round the potentiometer value to an integer
-
-        pot2 = Number(sensors[3]); // convert the fourth sensor value to an integer
-        pot2 = map(pot2, 0, 1023, 0, 255); // map the potentiometer value from 0-1023 to 0-255
-        pot2 = floor(pot2); // round the potentiometer value to an integer
+        textSize(64);
+        fill(50, 50, 200); // Blue for time
+        text(reactionTime + ' ms', width / 2, 200);
         
-        print("Button 1: " + button1 + " Button 2: " + button2 + " Pot 1: " + pot1 + " Pot 2: " + pot2);  //print mapped sensor values to the console
+        textSize(18);
+        fill(50);
+        text(feedbackMessage, width / 2, 300);
+        
+    } else {
+        // Mode B: Rev Lights Display
+        textSize(32);
+        fill(0);
+        text('Potentiometer Value:', width / 2, 120);
+        
+        textSize(64);
+        fill(200, 50, 50); // Red for lights
+        text(potLightCount + ' / 5 Lights ON', width / 2, 200);
 
-        //now that we're done processing the incoming data, we can "call out" to our microcontroller, which respond with latest sensor data.
-        serial.write('A');  // send 'A' to the serial port to indicate that we want the latest sensor data
-      }
+        textSize(18);
+        fill(50);
+        text('Rotate the physical potentiometer to change the lights.', width / 2, 300);
     }
-  }
-  else
-  {
-    let inString = serial.readStringUntil('\n'); // read the incoming string until you get a newline character
-    print(inString); // print the incoming string to the console
-  }
+    
+    // Update button visibility based on mode
+    gameStartButton.style('display', currentMode === 'A' ? 'block' : 'none');
 }
 
-function serialError(err) //gets called when there's an error
-{
-  print('SERIAL ERROR: ' + err);
+// --- UI Interaction Functions ---
+
+function toggleMode() {
+    if (currentMode === 'A') {
+        currentMode = 'B';
+        modeMessage = 'Current Mode: Rev Lights (B)';
+        modeToggle.html('Switch to Lights Out (A)');
+        // Send 'B' to Arduino to activate Rev Lights mode
+        if (isConnected) serial.write('B');
+    } else {
+        currentMode = 'A';
+        modeMessage = 'Current Mode: Lights Out (A)';
+        modeToggle.html('Switch to Rev Lights (B)');
+        // Send 'A' to Arduino to activate Lights Out mode
+        if (isConnected) serial.write('A');
+    }
+    reactionTime = '---'; // Clear display on mode switch
+    potLightCount = 0;
 }
 
-function serverConnected() //gets called when we connect to the serial server
-{
-  print("CONNECTED TO SERIAL SERVER");
+function startGame() {
+    if (currentMode === 'A' && isConnected) {
+        // Send 'A' to Arduino to confirm the mode and start listening for the button press
+        serial.write('A'); 
+        
+        // This button press corresponds to the physical button press logic in the Arduino sketch
+        // which triggers initLightsSequence().
+        feedbackMessage = 'Sequence started! Waiting for "GO!"...';
+    } else if (currentMode === 'B') {
+        alert("Game Start button is only active in Lights Out Mode (A).");
+    } else {
+        alert("Not connected to Arduino. Please check your port name and connection.");
+    }
+}
+
+// --- Serial Event Functions ---
+
+function serialEvent() {
+    let inData = serial.readLine(); // Read the most recent data line
+    
+    if (inData.length > 0) {
+        let trimmedData = inData.trim();
+
+        if (currentMode === 'A') {
+            // Data for Lights Out Game
+            if (trimmedData.startsWith("Reaction Time:")) {
+                let parts = trimmedData.split(':');
+                if (parts.length > 1) {
+                    let timePart = parts[1].trim().split(' ')[0]; // Extract just the number
+                    reactionTime = timePart;
+                    feedbackMessage = `Reaction Time Recorded: ${reactionTime} ms`;
+                }
+            } else if (trimmedData === "GO!") {
+                feedbackMessage = "GO! Press the physical button NOW!";
+            } else if (trimmedData.startsWith("Sequence started.")) {
+                feedbackMessage = "Sequence started. Lights are turning on...";
+            }
+        } 
+        
+        else if (currentMode === 'B') {
+            // Data for Rev Lights
+            if (trimmedData.startsWith(" -> Lights ON:")) {
+                let parts = trimmedData.split(" -> Lights ON: ");
+                if (parts.length > 1) {
+                    // Extract the last number (the count)
+                    potLightCount = parseInt(parts[1].trim());
+                }
+            }
+        }
+    }
+}
+
+function serverConnected() {
+    print("CONNECTED TO SERIAL SERVER");
+}
+
+function portOpen() {
+    print("SERIAL PORT OPEN");
+    isConnected = true;
+    // Send initial mode command
+    serial.write(currentMode);
+}
+
+function portClose() {
+    print("SERIAL PORT CLOSED");
+    isConnected = false;
+}
+
+function serialError(err) {
+    print('SERIAL ERROR: ' + err);
+}
+
+function printList(portList) {
+    print("List of Available Serial Ports: ");
+    for (let i = 0; i < portList.length; i++) {
+        print(i + portList[i]); 
+    }
 }
