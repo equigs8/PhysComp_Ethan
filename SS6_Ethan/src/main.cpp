@@ -106,8 +106,7 @@ void updateLightsSequence() {
     }
     
     // Record the precise moment the lights went out
-    lightsOutTime = currentMillis; 
-    Serial.println("GO!");    
+    lightsOutTime = currentMillis;    
     
     // Move to the final stage (waiting for button press)
     currentLightIndex++; // currentLightIndex will now be 6
@@ -131,8 +130,12 @@ void checkGameResult() {
 
     // Send the reaction time result back over Serial
     Serial.print("Reaction Time: ");
+    Serial.print(",");
     Serial.print(reactionTimeMS); 
+    Serial.print(",");
     Serial.print(" ms");
+    Serial.print(",");
+    Serial.print("gameIsOver");
     Serial.print('\n'); 
 
     gameIsActive = false; // End the game round

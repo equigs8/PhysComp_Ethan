@@ -13,6 +13,10 @@ let reactionTime = '---'; // Holds the result from Mode 'A'
 let potLightCount = 0;    // Holds the number of lights ON from Mode 'B'
 let feedbackMessage = 'Press the button below to start the game.'; // Dynamic message display
 let modeMessage = 'Current Mode: Lights Out (A)';
+let gameStarted = false;
+let timeRecived = 0;
+
+let trimmedData = [0,0,0,0];
 
 // --- P5 Setup ---
 function setup() {
@@ -110,14 +114,15 @@ function toggleMode() {
         modeMessage = 'Current Mode: Lights Out (A)';
         modeToggle.html('Switch to Rev Lights (B)');
         // Send 'A' to Arduino to activate Lights Out mode
-        if (isConnected) serial.write('A');
+        
     }
     reactionTime = '---'; // Clear display on mode switch
     potLightCount = 0;
 }
 
 function startGame() {
-    if (currentMode === 'A' && isConnected) {
+    if (currentMode === 'A' && isConnected && !gameStarted) {
+        gameStarted = true;
         // Send 'A' to Arduino to confirm the mode and start listening for the button press
         serial.write('A'); 
         
@@ -134,24 +139,17 @@ function startGame() {
 // --- Serial Event Functions ---
 
 function serialEvent() {
-    let inData = serial.readLine(); // Read the most recent data line
-    
+    let inData = serial.readStringUntil('\n'); // Read the most recent data line
     if (inData.length > 0) {
-        let trimmedData = inData.trim();
-
+        print("INCOMING DATA: " + inData);
+        trimmedData = inData.split(',');
         if (currentMode === 'A') {
             // Data for Lights Out Game
-            if (trimmedData.startsWith("Reaction Time:")) {
-                let parts = trimmedData.split(':');
-                if (parts.length > 1) {
-                    let timePart = parts[1].trim().split(' ')[0]; // Extract just the number
-                    reactionTime = timePart;
-                    feedbackMessage = `Reaction Time Recorded: ${reactionTime} ms`;
-                }
+            if (trimmedData[0] === "Reaction Time:") {
+                timeRecived = trimmedData[1];
+                reactionTime = timeRecived;
             } else if (trimmedData === "GO!") {
                 feedbackMessage = "GO! Press the physical button NOW!";
-            } else if (trimmedData.startsWith("Sequence started.")) {
-                feedbackMessage = "Sequence started. Lights are turning on...";
             }
         } 
         
